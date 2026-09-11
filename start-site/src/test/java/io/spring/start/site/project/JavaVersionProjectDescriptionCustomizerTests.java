@@ -125,6 +125,34 @@ class JavaVersionProjectDescriptionCustomizerTests extends AbstractExtensionTest
 		assertHelpDocument("${another.version}").doesNotContain("# Read Me First");
 	}
 
+	@Test
+	void java27IsDowngradedTo26OnBoot40() {
+		ProjectRequest request = createProjectRequest(SupportedBootVersion.V4_0, "web");
+		request.setJavaVersion("27");
+		assertThat(mavenPom(request)).hasProperty("java.version", "26");
+	}
+
+	@Test
+	void java27IsDowngradedTo26OnBoot41() {
+		ProjectRequest request = createProjectRequest(SupportedBootVersion.V4_1, "web");
+		request.setJavaVersion("27");
+		assertThat(mavenPom(request)).hasProperty("java.version", "26");
+	}
+
+	@Test
+	void java27IsSupportedOnBoot42() {
+		assertThat(mavenPom(javaProject("27", "4.2.0"))).hasProperty("java.version", "27");
+	}
+
+	@Test
+	void warningAddedWhenJava27IsDowngraded() {
+		ProjectRequest request = createProjectRequest(SupportedBootVersion.V4_0, "web");
+		request.setJavaVersion("27");
+		assertThat(helpDocument(request)).lines()
+			.containsSubsequence("# Read Me First",
+					"* The JVM level was changed to '26', review the [JDK Version Range](https://github.com/spring-projects/spring-framework/wiki/Spring-Framework-Versions#jdk-version-range) on the wiki for more details.");
+	}
+
 	private TextAssert assertHelpDocument(ProjectRequest request) {
 		return assertThat(helpDocument(request));
 	}
